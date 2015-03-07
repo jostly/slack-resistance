@@ -20,13 +20,15 @@ object Game {
 
 class Game extends AggregateRoot[GameId] {
 
-  var creator: User = _
   var state: State = Initializing
+  var creator: User = _
   var players: List[User] = Nil
+  var maxNumberOfPlayers: Int = _
 
   def create(id: GameId, creator: User, maxPlayers: Int) = {
     assertCanBeCreated()
     applyChange(GameCreatedEvent(id, nextVersion(), now(), creator, GameSettings(maxPlayers)))
+    applyChange(PlayerJoinedEvent(id, nextVersion(), now(), creator))
   }
 
   def end() = {
@@ -40,24 +42,26 @@ class Game extends AggregateRoot[GameId] {
   }
   
   def assertCanBeCreated() = {
-    assert(state == Initializing || state == Ended)
+    ensure(state == Initializing || state == Ended)
   }
 
   def assertCanBeEnded() = {
-    assert(state != Ended)
+    ensure(state != Ended)
   }
 
   def assertCanJoin(user: User) = {
-    assert(state == PlayersJoining)
-    assert(freeSeats >= 1)
-    assert(!players.contains(user))
+    ensure(state == PlayersJoining)
+    ensure(freeSeats >= 1)
+    ensure(!players.contains(user))
   }
 
-  def freeSeats: Int = 10 - players.length
+  def freeSeats: Int = maxNumberOfPlayers - players.length
 
   def handleEvent(event: GameCreatedEvent) = {
     this.id = event.aggregateId
     this.creator = event.createdBy
+    this.maxNumberOfPlayers = event.settings.maxNumberOfPlayers
+    this.players = Nil
     this.state = PlayersJoining
   }
 

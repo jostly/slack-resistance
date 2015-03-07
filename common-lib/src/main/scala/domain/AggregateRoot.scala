@@ -56,5 +56,13 @@ abstract class AggregateRoot[T <: GenericId] {
   }
 
   def uncommittedEvents() = _uncommittedEvents.reverse
+
+  def ensure(condition: Boolean) {
+    if (!condition) throw new IllegalStateException("requirement failed")
+  }
+
+  def ensure(condition: Boolean, message: => Any) {
+    if (!condition) throw new IllegalStateException("requirement failed: " + message)
+  }
 }
 
