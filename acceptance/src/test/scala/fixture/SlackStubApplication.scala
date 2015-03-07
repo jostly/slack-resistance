@@ -3,6 +3,7 @@ package fixture
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
+import com.typesafe.scalalogging.LazyLogging
 import infrastructure.BindActor
 import org.json4s.native.Serialization
 import org.json4s.{Formats, NoTypeHints}
@@ -18,6 +19,8 @@ class SlackStubApplication(system: ActorSystem, port: Int = 8080, host: String =
   val router = system.actorOf(Props(classOf[SlackStubRoutingActor]), "stub-routing")
   val binder = system.actorOf(Props(classOf[BindActor]), "stub-binding")
 
+  implicit val timeout = Timeout(5.seconds)
+
   def start() = {
     Await.result(binder ? Http.Bind(router, interface = host, port = port), 5.seconds)
   }
@@ -27,8 +30,7 @@ class SlackStubApplication(system: ActorSystem, port: Int = 8080, host: String =
   }
 }
 
-class SlackStubRoutingActor
-  extends Actor with HttpService {
+class SlackStubRoutingActor extends Actor with HttpService with LazyLogging {
 
   implicit def json4sFormats: Formats = Serialization.formats(NoTypeHints)
 
@@ -38,7 +40,11 @@ class SlackStubRoutingActor
 
   def receive = {
     runRoute(
-      complete(StatusCodes.OK)
+      pathPrefix("services") {
+        post {
+          complete(StatusCodes.OK)
+        }
+      }
     )
   }
 }

@@ -33,11 +33,13 @@ with BeforeAndAfterAll with BeforeAndAfterEach {
 
   override def afterAll {
     playApplication.close()
+    slackStubApplication.close()
     TestKit.shutdownActorSystem(system)
   }
 
   override def beforeAll {
     system.eventStream.subscribe(testActor, classOf[DomainEvent[_]])
+    slackStubApplication.start()
     playApplication.start()
   }
 
@@ -46,7 +48,7 @@ with BeforeAndAfterAll with BeforeAndAfterEach {
 
   val slackStubApplication = new SlackStubApplication(system, port = slackStubPort, host = "localhost")
   val playApplication = new PlayApplication(system, port = playApplicationPort, host = "localhost",
-    slackUrl = s"http://localhost:$slackStubPort/")
+    slackUrl = s"http://localhost:$slackStubPort/services")
 
   def post(url: String, payload: FormData, timeout: Duration = 1.second): HttpResponse = {
     val pipeline: HttpRequest => Future[HttpResponse] = sendReceive

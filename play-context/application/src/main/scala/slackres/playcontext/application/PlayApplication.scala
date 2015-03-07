@@ -3,13 +3,14 @@ package slackres.playcontext.application
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import infrastructure.{BindActor, Resource}
+import infrastructure.{SlackClient, BindActor, Resource}
 import org.json4s.native.Serialization
 import org.json4s.{Formats, NoTypeHints}
 import parser._
 import slackres.playcontext.command.CommandHandler
 import slackres.playcontext.infrastructure.{InMemoryDomainEventStore, DefaultRepository}
 import slackres.playcontext.resource._
+import slackres.playcontext.saga.GameNotifier
 import spray.can.Http
 import spray.http.MediaTypes._
 import spray.http.{FormData, StatusCodes}
@@ -24,6 +25,10 @@ class PlayApplication(system: ActorSystem, port: Int = 8080, host: String = "loc
   val repository = new DefaultRepository(system.eventStream, domainEventStore)
 
   val commandHandler = new CommandHandler(repository)
+
+  val slackClient = new SlackClient(slackUrl)
+
+  val slackNotifier = system.actorOf(Props(classOf[GameNotifier], slackClient))
 
   val router = system.actorOf(Props(classOf[PlayRoutingActor], new CommandParser(commandHandler), QueryParser), "play-routing")
   val binder = system.actorOf(Props(classOf[BindActor]), "play-binding")
