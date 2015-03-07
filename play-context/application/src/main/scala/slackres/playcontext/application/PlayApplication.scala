@@ -8,7 +8,8 @@ import org.json4s.native.Serialization
 import org.json4s.{Formats, NoTypeHints}
 import parser._
 import slackres.playcontext.command.CommandHandler
-import slackres.playcontext.infrastructure.{InMemoryDomainEventStore, DefaultRepository}
+import slackres.playcontext.infrastructure.{InMemoryGameStatusRepository, InMemoryDomainEventStore, DefaultRepository}
+import slackres.playcontext.query.GameStatusTracker
 import slackres.playcontext.resource._
 import slackres.playcontext.saga.GameNotifier
 import spray.can.Http
@@ -22,15 +23,21 @@ class PlayApplication(system: ActorSystem, port: Int = 8080, host: String = "loc
 
   val domainEventStore = new InMemoryDomainEventStore
 
-  val repository = new DefaultRepository(system.eventStream, domainEventStore)
+  val defaultRepository = new DefaultRepository(system.eventStream, domainEventStore)
 
-  val commandHandler = new CommandHandler(repository)
+  val commandHandler = new CommandHandler(defaultRepository)
+
+  val gameStatusRepository = new InMemoryGameStatusRepository()
+
+  val gameStatusTracker = system.actorOf(Props(classOf[GameStatusTracker], gameStatusRepository))
 
   val slackClient = new SlackClient(slackUrl)
 
-  val slackNotifier = system.actorOf(Props(classOf[GameNotifier], slackClient))
+  val slackNotifier = system.actorOf(Props(classOf[GameNotifier], slackClient, gameStatusTracker))
 
-  val router = system.actorOf(Props(classOf[PlayRoutingActor], new CommandParser(commandHandler), QueryParser), "play-routing")
+  val router = system.actorOf(Props(classOf[PlayRoutingActor],
+    new CommandParser(commandHandler),
+    new QueryParser(gameStatusRepository)), "play-routing")
   val binder = system.actorOf(Props(classOf[BindActor]), "play-binding")
 
   implicit val timeout = Timeout(5.seconds)
@@ -56,7 +63,7 @@ class PlayRoutingActor(commandParser: Parser, queryParser: Parser)
 
   val commandRoute =
     pathPrefix("form") {
-      respondWithMediaType(`text/plain`) {
+      respondWithMediaType(`application/json`) {
         post {
           import spray.httpx.unmarshalling.FormDataUnmarshallers.UrlEncodedFormDataUnmarshaller
           entity(as[FormData]) { form =>

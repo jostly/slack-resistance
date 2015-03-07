@@ -9,7 +9,9 @@ class CommandParser(commandHandler: CommandHandler) extends Parser {
 
   override def parse(input: SlackCommand) = {
     case "create" :: Nil =>
-      commandHandler.handle(CreateGameCommand(GameId(input.channelId), User(input.userName)))
+      commandHandler.handle(CreateGameCommand(GameId(input.channelId), User(input.userName), 10))
+    case "create" :: num :: Nil =>
+      commandHandler.handle(CreateGameCommand(GameId(input.channelId), User(input.userName), num.toInt))
     case "end" :: Nil =>
       StatusCodeAndMessageResponse(StatusCodes.RetryWith, "Are you sure you want to end this game? Use the command 'end !' to end it.")
     case "end" :: "!" :: Nil =>

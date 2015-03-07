@@ -2,12 +2,12 @@ package slackres.playcontext.domain
 
 import domain.AggregateRoot
 import slackres.playcontext.domain.Game._
-import slackres.playcontext.event.{PlayerJoinedEvent, GameEndedEvent, GameCreatedEvent}
+import slackres.playcontext.event.{GameSettings, PlayerJoinedEvent, GameEndedEvent, GameCreatedEvent}
 
 object Game {
-  def create(id: GameId, creator: User) = {
+  def create(id: GameId, creator: User, maxPlayers: Int) = {
     val game = new Game()
-    game.create(id, creator)
+    game.create(id, creator, maxPlayers)
     game
   }
   
@@ -24,9 +24,9 @@ class Game extends AggregateRoot[GameId] {
   var state: State = Initializing
   var players: List[User] = Nil
 
-  def create(id: GameId, creator: User) = {
+  def create(id: GameId, creator: User, maxPlayers: Int) = {
     assertCanBeCreated()
-    applyChange(GameCreatedEvent(id, nextVersion(), now(), creator))
+    applyChange(GameCreatedEvent(id, nextVersion(), now(), creator, GameSettings(maxPlayers)))
   }
 
   def end() = {

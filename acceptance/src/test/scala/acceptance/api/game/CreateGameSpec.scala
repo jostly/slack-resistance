@@ -2,7 +2,7 @@ package acceptance.api.player
 
 import fixture.AbstractAcceptanceTest
 import slackres.playcontext.domain.{User, GameId}
-import slackres.playcontext.event.{GameEndedEvent, GameCreatedEvent}
+import slackres.playcontext.event.{GameSettings, GameEndedEvent, GameCreatedEvent}
 import spray.http.StatusCodes
 import scala.concurrent.duration._
 
@@ -12,15 +12,15 @@ class CreateGameSpec extends AbstractAcceptanceTest {
     scenario("successfully creating a game") {
       Given("no started game in the channel")
 
-      When("the 'create' command is posted")
-      val reply = slackCommand("create", channel_id = "scenario_one")
+      When("a 'create 5' command is posted")
+      val reply = slackCommand("create 5", channel_id = "scenario_one")
 
       Then("the server responds with 'OK'")
       reply.status should be (StatusCodes.OK)
 
       And("'GameCreatedEvent' should have occured")
       expectMsgPF() {
-        case GameCreatedEvent(GameId("scenario_one"), _, _, User("user_name")) =>
+        case GameCreatedEvent(GameId("scenario_one"), _, _, User("user_name"), GameSettings(5)) =>
       }
     }
     scenario("creating a game when one is running") {
@@ -54,7 +54,7 @@ class CreateGameSpec extends AbstractAcceptanceTest {
 
       And("'GameCreatedEvent' should have occured")
       expectMsgPF() {
-        case GameCreatedEvent(GameId("scenario_three"), _, _, User("user_name")) =>
+        case GameCreatedEvent(GameId("scenario_three"), _, _, User("user_name"), GameSettings(10)) =>
       }
 
     }
