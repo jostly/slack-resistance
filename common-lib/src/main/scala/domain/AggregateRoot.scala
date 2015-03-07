@@ -22,9 +22,16 @@ abstract class AggregateRoot[T <: GenericId] {
     }
   }
 
-  def applyChange(event: DomainEvent[T], isNew: Boolean = true) {
+  def applyVersionAndTimestamp(event: DomainEvent[T]) {
+    this.version = event.version
+    this.timestamp = event.timestamp
+  }
+
+  def applyChange(event: DomainEvent[T], isNew: Boolean = true) = {
+    applyVersionAndTimestamp(event)
     invokeHandlerMethod(event)
     if (isNew) _uncommittedEvents ::= event
+    this
   }
 
   private def invokeHandlerMethod(event: DomainEvent[T]) {

@@ -56,6 +56,20 @@ class EndGameSpec extends AbstractAcceptanceTest {
       And("no 'GameEndedEvent' should have occured")
       expectNoMsg(100.milliseconds)
     }
+    scenario("trying to end a game without ! in the command") {
+      Given("a started game in the channel")
+      slackCommand("create", channel_id = "scenario_4").status should be (StatusCodes.OK)
+      expectMsgClass(classOf[GameCreatedEvent])
+
+      When("the 'end' command is posted")
+      val reply = slackCommand("end", channel_id = "scenario_4")
+
+      Then("the server responds with 'RetryWith'")
+      reply.status should be (StatusCodes.RetryWith)
+
+      And("no 'GameEndedEvent' should have occured")
+      expectNoMsg(100.milliseconds)
+    }
 
   }
 
