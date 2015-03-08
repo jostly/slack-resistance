@@ -1,19 +1,18 @@
 package acceptance.api.game
 
-import fixture.AbstractAcceptanceTest
+import fixture.{CreateGame, AbstractAcceptanceTest}
 import slackres.playcontext.domain.GameId
-import slackres.playcontext.event.{GameCreatedEvent, GameEndedEvent}
+import slackres.playcontext.event.{PlayerJoinedEvent, GameCreatedEvent, GameEndedEvent}
 import spray.http.StatusCodes
 
 import scala.concurrent.duration._
 
-class EndGameSpec extends AbstractAcceptanceTest {
+class EndGameSpec extends AbstractAcceptanceTest with CreateGame {
 
   feature("End a game") {
     scenario("successfully ending a game") {
       Given("a started game in the channel")
-      slackCommand("create", channel_id = "scenario_one").status should be (StatusCodes.OK)
-      expectMsgClass(classOf[GameCreatedEvent])
+      createGame("scenario_one")
 
       When("the 'end !' command is posted")
       val reply = slackCommand("end !", channel_id = "scenario_one")
@@ -40,8 +39,7 @@ class EndGameSpec extends AbstractAcceptanceTest {
     }
     scenario("ending a game that is already ended") {
       Given("one game started in the channel")
-      slackCommand("create", channel_id = "scenario_three").status should be (StatusCodes.OK)
-      expectMsgClass(classOf[GameCreatedEvent])
+      createGame("scenario_three")
 
       And("the game is ended")
       slackCommand("end !", channel_id = "scenario_three").status should be (StatusCodes.OK)
@@ -58,8 +56,7 @@ class EndGameSpec extends AbstractAcceptanceTest {
     }
     scenario("trying to end a game without ! in the command") {
       Given("a started game in the channel")
-      slackCommand("create", channel_id = "scenario_4").status should be (StatusCodes.OK)
-      expectMsgClass(classOf[GameCreatedEvent])
+      createGame("scenario_4")
 
       When("the 'end' command is posted")
       val reply = slackCommand("end", channel_id = "scenario_4")

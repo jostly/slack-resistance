@@ -10,8 +10,9 @@ import org.json4s.native.Serialization
 import org.json4s.{Formats, NoTypeHints}
 import org.scalatest._
 import slackres.playcontext.application.PlayApplication
+import slackres.playcontext.event.{PlayerJoinedEvent, GameCreatedEvent}
 import spray.client.pipelining._
-import spray.http.{FormData, HttpRequest, HttpResponse}
+import spray.http.{StatusCodes, FormData, HttpRequest, HttpResponse}
 import spray.httpx.marshalling.BasicMarshallers.FormDataMarshaller
 
 import scala.concurrent.duration._
@@ -107,3 +108,11 @@ with BeforeAndAfterAll with BeforeAndAfterEach {
 
 }
 
+trait CreateGame { self: AbstractAcceptanceTest =>
+  def createGame(gameId: String) {
+    slackCommand("create", channel_id = gameId).status should be(StatusCodes.OK)
+    expectMsgClass(classOf[GameCreatedEvent])
+    expectMsgClass(classOf[PlayerJoinedEvent])
+  }
+
+}
