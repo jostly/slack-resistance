@@ -9,7 +9,7 @@ import slackres.playcontext.domain.{User, GameId, Game}
 import spray.http.StatusCodes._
 
 case class CreateGameCommand(id: GameId, user: User, numberOfPlayers: Int) extends Command
-case class EndGameCommand(id: GameId) extends Command
+case class EndGameCommand(id: GameId, user: User) extends Command
 case class JoinGameCommand(id: GameId, user: User) extends Command
 
 class CommandHandler(repository: Repository) extends LazyLogging {
@@ -24,10 +24,10 @@ class CommandHandler(repository: Repository) extends LazyLogging {
           repository.save[GameId, Game](game)
           StatusCodeAndMessageResponse(OK, "Game started")
       }
-    case EndGameCommand(gameId) =>
+    case EndGameCommand(gameId, user) =>
       repository.load(gameId, classOf[Game]) match {
         case Some(game) if game.state != Ended =>
-          game.end()
+          game.end(user)
           repository.save[GameId, Game](game)
           StatusCodeAndMessageResponse(OK, "Game ended")
         case _ =>

@@ -31,9 +31,9 @@ class Game extends AggregateRoot[GameId] {
     applyChange(PlayerJoinedEvent(id, nextVersion(), now(), creator))
   }
 
-  def end() = {
+  def end(endedBy: User) = {
     assertCanBeEnded()
-    applyChange(GameEndedEvent(id, nextVersion(), now()))
+    applyChange(GameEndedEvent(id, nextVersion(), now(), Some(endedBy)))
   }
 
   def addPlayer(user: User) = {

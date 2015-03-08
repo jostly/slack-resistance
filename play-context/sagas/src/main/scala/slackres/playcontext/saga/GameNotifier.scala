@@ -26,8 +26,9 @@ class GameNotifier(client: SlackClient, statusTracker: ActorRef) extends Actor w
       client.post(channel = channelId,
         text = s"@$userName created a new game for up to $numberOfPlayers players. Playing games not yet implemented however.")
 
-    case GameEndedEvent(GameId(channelId), _, _) =>
-      client.post(channel = channelId, text = s"Game was ended by user.")
+    case GameEndedEvent(GameId(channelId), _, _, endedBy) =>
+      val user = endedBy.map(_.name).getOrElse("system")
+      client.post(channel = channelId, text = s"Game was ended by $user.")
 
     case PlayerJoinedEvent(GameId(channelId), _, _, User(playerName)) =>
       (statusTracker ? GameId(channelId)).onComplete {

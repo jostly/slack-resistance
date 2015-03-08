@@ -143,7 +143,7 @@ class GameTest extends FunSuite with Matchers {
   test("ending sets state") {
     val game = Game.create(gameId, creator, maxPlayers)
 
-    game.end()
+    game.end(player)
 
     game should have ('state (Game.Ended))
   }
@@ -151,24 +151,26 @@ class GameTest extends FunSuite with Matchers {
   test("cannot end already ended game") {
     val game = Game.create(gameId, creator, maxPlayers)
 
-    game.end()
+    game.end(player)
 
-    an [IllegalStateException] should be thrownBy game.end()
+    an [IllegalStateException] should be thrownBy game.end(player)
   }
 
   test("ending emits GameEndedEvent") {
     val game = Game.create(gameId, creator, maxPlayers)
 
-    game.end()
+    game.end(player)
     val ge = game.uncommittedEvents().filter(_.isInstanceOf[GameEndedEvent])
 
     ge should have length 1
-    ge.head should have ('aggregateId (gameId))
+    ge.head should have (
+      'aggregateId (gameId),
+      'endedBy (Some(player)))
   }
 
   test("creating from an ended game resets all properties") {
     val game = Game.create(gameId, creator, maxPlayers)
-    game.end()
+    game.end(creator)
 
     game.markChangesAsCommitted()
 

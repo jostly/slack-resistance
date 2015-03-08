@@ -1,7 +1,7 @@
 package acceptance.api.game
 
 import fixture.{CreateGame, AbstractAcceptanceTest}
-import slackres.playcontext.domain.GameId
+import slackres.playcontext.domain.{User, GameId}
 import slackres.playcontext.event.{PlayerJoinedEvent, GameCreatedEvent, GameEndedEvent}
 import spray.http.StatusCodes
 
@@ -22,7 +22,7 @@ class EndGameSpec extends AbstractAcceptanceTest with CreateGame {
 
       And("'GameEndedEvent' should have occured")
       expectMsgPF() {
-        case GameEndedEvent(GameId("scenario_one"), _, _) =>
+        case GameEndedEvent(GameId("scenario_one"), _, _, Some(User("user_name"))) =>
       }
     }
     scenario("ending a game that does not exist") {

@@ -46,7 +46,7 @@ class GameStatusTrackerTest extends TestKit(ActorSystem()) with FunSuiteLike wit
 
     repo.save _ expects GameStatus(id1, 5, Set(user1), GameState.Ended)
 
-    tracker ! GameEndedEvent(id1, 0, 0)
+    tracker ! GameEndedEvent(id1, 0, 0, None)
   }
 
   test("Respond with status directly from repository") {

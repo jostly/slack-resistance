@@ -15,7 +15,7 @@ class CommandParser(commandHandler: CommandHandler) extends Parser {
     case "end" :: Nil =>
       StatusCodeAndMessageResponse(StatusCodes.RetryWith, "Are you sure you want to end this game? Use the command 'end !' to end it.")
     case "end" :: "!" :: Nil =>
-      commandHandler.handle(EndGameCommand(GameId(input.channelId)))
+      commandHandler.handle(EndGameCommand(GameId(input.channelId), User(input.userName)))
 
     case "join" :: Nil =>
       commandHandler.handle(JoinGameCommand(GameId(input.channelId), User(input.userName)))

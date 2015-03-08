@@ -15,7 +15,7 @@ class GameStatusTracker(repository: GameStatusRepository) extends Actor with Laz
     case GameCreatedEvent(gameId, _, _, player, GameSettings(numberOfPlayers)) =>
       repository.save(GameStatus(gameId, numberOfPlayers, Set.empty, PlayersJoining))
 
-    case GameEndedEvent(gameId, _, _) =>
+    case GameEndedEvent(gameId, _, _, _) =>
       for (game <- repository.load(gameId); updatedGame <- Some(game.copy(state = Ended)))
         repository.save(updatedGame)
 
