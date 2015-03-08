@@ -8,7 +8,7 @@ import org.json4s.native.Serialization
 import org.json4s.{Formats, NoTypeHints}
 import parser._
 import slackres.playcontext.command.CommandHandler
-import slackres.playcontext.infrastructure.{InMemoryGameStatusRepository, InMemoryDomainEventStore, DefaultRepository}
+import slackres.playcontext.infrastructure.{SlackClientImpl, InMemoryGameStatusRepository, InMemoryDomainEventStore, DefaultRepository}
 import slackres.playcontext.query.GameStatusTracker
 import slackres.playcontext.resource._
 import slackres.playcontext.saga.GameNotifier
@@ -31,9 +31,9 @@ class PlayApplication(system: ActorSystem, port: Int = 8080, host: String = "loc
 
   val gameStatusTracker = system.actorOf(Props(classOf[GameStatusTracker], gameStatusRepository))
 
-  val slackClient = new SlackClient(slackUrl)
+  val slackClient = new SlackClientImpl(slackUrl)
 
-  val slackNotifier = system.actorOf(Props(classOf[GameNotifier], slackClient, gameStatusTracker))
+  val slackNotifier = system.actorOf(Props(classOf[GameNotifier], slackClient))
 
   val router = system.actorOf(Props(classOf[PlayRoutingActor],
     new CommandParser(commandHandler),

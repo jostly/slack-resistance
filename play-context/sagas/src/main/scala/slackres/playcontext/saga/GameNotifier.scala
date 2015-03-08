@@ -1,19 +1,16 @@
 package slackres.playcontext.saga
 
-import akka.actor.{Actor, ActorRef}
-import akka.pattern.ask
+import akka.actor.Actor
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import event.DomainEvent
 import infrastructure.SlackClient
-import slackres.playcontext.domain.{GameId, GameStatus, User}
+import slackres.playcontext.domain.{GameId, User}
 import slackres.playcontext.event.{GameCreatedEvent, GameEndedEvent, GameSettings, PlayerJoinedEvent}
-
-import scala.util.Success
 
 import scala.concurrent.duration._
 
-class GameNotifier(client: SlackClient, statusTracker: ActorRef) extends Actor with LazyLogging {
+class GameNotifier(client: SlackClient) extends Actor with LazyLogging {
 
   context.system.eventStream.subscribe(self, classOf[DomainEvent[_]])
 
@@ -31,10 +28,7 @@ class GameNotifier(client: SlackClient, statusTracker: ActorRef) extends Actor w
       client.post(channel = channelId, text = s"Game was ended by $user.")
 
     case PlayerJoinedEvent(GameId(channelId), _, _, User(playerName)) =>
-      (statusTracker ? GameId(channelId)).onComplete {
-        case Success(status: GameStatus) => client.post(channel = channelId, text = s"@$playerName joined the game, leaving room for ${status.freeSeats} more players.")
-        case _ => client.post(channel = channelId, text = s"@$playerName joined the game.")
-      }
+      client.post(channel = channelId, text = s"@$playerName joined the game.")
   }
 
 }
