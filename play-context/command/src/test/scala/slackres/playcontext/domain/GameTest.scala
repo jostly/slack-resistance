@@ -90,7 +90,7 @@ class GameTest extends FunSuite with Matchers {
   test("joining adds player to list") {
     val game = Game.create(gameId, creator, maxPlayers)
 
-    game.addPlayer(player)
+    game.playerJoin(player)
 
     game should have ('players (List(player, creator)))
   }
@@ -100,7 +100,7 @@ class GameTest extends FunSuite with Matchers {
 
     game should have ('freeSeats (4))
 
-    game.addPlayer(player)
+    game.playerJoin(player)
 
     game should have ('freeSeats (3))
   }
@@ -109,19 +109,19 @@ class GameTest extends FunSuite with Matchers {
     val game = Game.create(gameId, creator, maxPlayers)
     game.state = Game.Playing
 
-    an [IllegalStateException] should be thrownBy game.addPlayer(player)
+    an [IllegalStateException] should be thrownBy game.playerJoin(player)
   }
 
   test("cannot join a game with too few free seats") {
     val game = Game.create(gameId, creator, 1)
 
-    an [IllegalStateException] should be thrownBy game.addPlayer(player)
+    an [IllegalStateException] should be thrownBy game.playerJoin(player)
   }
 
   test("cannot join a game more than once") {
     val game = Game.create(gameId, creator, maxPlayers)
 
-    an [IllegalStateException] should be thrownBy game.addPlayer(creator)
+    an [IllegalStateException] should be thrownBy game.playerJoin(creator)
   }
 
   test("joining emits PlayerJoinedEvent") {
@@ -129,7 +129,7 @@ class GameTest extends FunSuite with Matchers {
 
     game.markChangesAsCommitted()
 
-    game.addPlayer(player)
+    game.playerJoin(player)
 
     val pje = game.uncommittedEvents().filter(_.isInstanceOf[PlayerJoinedEvent])
 

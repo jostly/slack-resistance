@@ -3,12 +3,12 @@ package slackres.playcontext.application
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import infrastructure.{SlackClient, BindActor, Resource}
+import infrastructure.{BindActor, Resource}
 import org.json4s.native.Serialization
 import org.json4s.{Formats, NoTypeHints}
 import parser._
 import slackres.playcontext.command.CommandHandler
-import slackres.playcontext.infrastructure.{SlackClientImpl, InMemoryGameStatusRepository, InMemoryDomainEventStore, DefaultRepository}
+import slackres.playcontext.infrastructure.{DefaultRepository, InMemoryDomainEventStore, InMemoryGameStatusRepository, SlackClientImpl}
 import slackres.playcontext.query.GameStatusTracker
 import slackres.playcontext.resource._
 import slackres.playcontext.saga.GameNotifier
@@ -76,7 +76,7 @@ class PlayRoutingActor(commandParser: Parser, queryParser: Parser)
                 parser.lift(input.text) match {
                   case Some(StatusCodeAndMessageResponse(code, message)) => code -> message
                   case Some(StatusCodeResponse(code)) => code
-                  case None => StatusCodes.UnprocessableEntity
+                  case None => StatusCodes.UnprocessableEntity -> s"Unknown command '${input.text}'"
                 }
               }
             }

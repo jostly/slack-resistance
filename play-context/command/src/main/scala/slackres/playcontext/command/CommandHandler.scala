@@ -36,7 +36,7 @@ class CommandHandler(repository: Repository) extends LazyLogging {
     case JoinGameCommand(gameId, user) =>
       repository.load(gameId, classOf[Game]) match {
         case Some(game) if game.state == PlayersJoining =>
-          game.addPlayer(user)
+          game.playerJoin(user)
           repository.save[GameId, Game](game)
           StatusCodeAndMessageResponse(OK, "Joined game")
         case _ =>
